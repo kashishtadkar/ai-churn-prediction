@@ -8,104 +8,59 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 
 # Initialize predictor
-print("🚀 Initializing Churn Predictor...")
 predictor = ChurnPredictor()
-print("✅ Server ready!")
 
 @app.route('/')
 def home():
-    """Serve the dashboard"""
     return render_template('dashboard.html')
 
-@app.route('/api/predict', methods=['POST'])
-def predict_single():
-    """
-    API endpoint for single customer prediction
-    
-    Request body example:
-    {
-        "gender": "Male",
-        "tenure": 3,
-        "MonthlyCharges": 95.0,
-        ...
-    }
-    """
+@app.route('/predict', methods=['POST'])
+def predict():
     try:
-        customer_data = request.json
-        result = predictor.predict(customer_data)
+        # Get form data
+        gender = request.form.get('gender')
+        senior_citizen = int(request.form.get('senior_citizen', 0))
+        partner = request.form.get('partner')
+        dependents = request.form.get('dependents')
+        tenure = int(request.form.get('tenure', 0))
+        contract = request.form.get('contract')
+        payment_method = request.form.get('payment_method')
+        monthly_charges = float(request.form.get('monthly_charges', 0))
+        total_charges = float(request.form.get('total_charges', 0))
+        internet_service = request.form.get('internet_service')
+        
+        # Create customer data dictionary
+        customer_data = {
+            'Gender': gender,
+            'SeniorCitizen': senior_citizen,
+            'Partner': partner,
+            'Dependents': dependents,
+            'tenure': tenure,
+            'Contract': contract,
+            'PaymentMethod': payment_method,
+            'MonthlyCharges': monthly_charges,
+            'TotalCharges': total_charges,
+            'InternetService': internet_service
+        }
+        
+        # Make prediction using ChurnPredictor
+        prediction, probability = predictor.predict(customer_data)
+        
+        # Return JSON response
         return jsonify({
-            'success': True,
-            'data': result
+            'prediction': 'Yes' if prediction == 1 else 'No',
+            'churn_probability': float(probability * 100)
         })
+        
     except Exception as e:
+        print(f"Error in prediction: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 400
-
-@app.route('/api/predict/batch', methods=['POST'])
-def predict_batch():
-    """
-    API endpoint for batch prediction
-    
-    Request body example:
-    {
-        "customers": [
-            {...customer1...},
-            {...customer2...}
-        ]
-    }
-    """
-    try:
-        customers = request.json.get('customers', [])
-        results = predictor.predict_batch(customers)
-        return jsonify({
-            'success': True,
-            'count': len(results),
-            'data': results
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 400
-
-@app.route('/api/stats', methods=['GET'])
-def get_stats():
-    """Get overall statistics"""
-    # These would come from a database in production
-    stats = {
-        'model_accuracy': 95.56,
-        'precision_score': 93.01,
-        'predictions_today': 2489,
-        'revenue_saved': 2400000,
-        'total_customers': 9500,
-        'high_risk_customers': 876,
-        'churn_rate': 12.5
-    }
-    return jsonify(stats)
-
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
-        'message': 'Churn Prediction API is running'
-    })
+            'error': 'Error making prediction',
+            'message': str(e)
+        }), 500
 
 if __name__ == '__main__':
-    import os
-    
-    # Get port from environment variable (Render provides this)
-    # If not found, use 5000 (for local development)
-    port = int(os.environ.get('PORT', 5000))
-    
-    print("\n" + "="*60)
-    print("🎯 CHURN PREDICTION API SERVER")
-    print("="*60)
-    print(f"📡 Server running on port: {port}")
-    print("="*60 + "\n")
-    
-    # debug=False for production (security)
-    # host='0.0.0.0' means accept connections from anywhere
-    app.run(debug=False, host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port, debug=False)
