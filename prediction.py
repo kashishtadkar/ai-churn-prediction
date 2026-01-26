@@ -1,210 +1,158 @@
-import pickle
 import pandas as pd
 import numpy as np
+import joblib
+import os
 
 class ChurnPredictor:
-    def __init__(self):
-
-        print("=" * 60)
-        print("INITIALIZING CHURN PREDICTOR")
-        print("=" * 60)
-        
-        print("\n1. Loading ensemble model...")
+    def _init_(self):
+        """Initialize the predictor and load models"""
         try:
-            with open('models/ensemble_model.pkl', 'rb') as f:
-                self.ensemble = pickle.load(f)
-            print("   ✅ Ensemble loaded")
+            # Load the ensemble model
+            self.ensemble_model = joblib.load('ensemble_model.pkl')
+            self.scaler = joblib.load('scaler.pkl')
+            self.label_encoders = joblib.load('label_encoders.pkl')
+            self.feature_names = joblib.load('feature_names.pkl')
+            print("✅ Models loaded successfully!")
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"❌ Error loading models: {str(e)}")
             raise
-        
-        print("\n2. Loading scaler...")
-        try:
-            with open('models/scaler.pkl', 'rb') as f:
-                self.scaler = pickle.load(f)
-            print("   ✅ Scaler loaded")
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
-            raise
-        
-        print("\n3. Loading label_encoders...")
-        try:
-            with open('models/label_encoders.pkl', 'rb') as f:
-                self.label_encoders = pickle.load(f)
-            print(f"   ✅ Label encoders loaded: {len(self.label_encoders)} encoders")
-            print(f"   Encoders for: {list(self.label_encoders.keys())}")
-        except Exception as e:
-            print(f"   ❌ Error loading label_encoders: {e}")
-            raise
-        
-        print("\n4. Loading feature names...")
-        try:
-            with open('models/feature_names.pkl', 'rb') as f:
-                self.feature_names = pickle.load(f)
-            print(f"   ✅ Feature names loaded: {len(self.feature_names)} features")
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
-            raise
-        
-        print("\n5. Extracting individual models...")
-        try:
-            self.rf_model = self.ensemble['rf_model']
-            self.gb_model = self.ensemble['gb_model']
-            print("   ✅ Models extracted")
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
-            raise
-        
-        print("\n" + "=" * 60)
-        print("✅ INITIALIZATION COMPLETE!")
-        print("=" * 60)
     
-    def preprocess_input(self, customer_data):
-        print("\n--- PREPROCESSING ---")
-        
-        # Create DataFrame
-        df = pd.DataFrame([customer_data])
-        print(f"Created DataFrame with {len(df.columns)} columns")
-        
-        # Handle TotalCharges
-        if 'TotalCharges' in df.columns:
-            df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
-            df['TotalCharges'] = df['TotalCharges'].fillna(0)
-        
-        # Remove customerID
-        if 'customerID' in df.columns:
-            df = df.drop('customerID', axis=1)
-        
-        # Encode categorical
-        print("Encoding categorical variables...")
-        for col in df.select_dtypes(include=['object']).columns:
-            print(f"  Encoding {col}...")
-            if col in self.label_encoders:
-                le = self.label_encoders[col]
-                try:
-                    df[col] = le.transform(df[col].astype(str))
-                    print(f"    ✅ Encoded to: {df[col].values[0]}")
-                except ValueError as e:
-                    print(f"    ⚠️ Unknown value, using 0")
-                    df[col] = 0
-            else:
-                print(f"    ⚠️ No encoder found for {col}")
-        
-        # Ensure all features
-        for feature in self.feature_names:
-            if feature not in df.columns:
-                df[feature] = 0
-        
-        # Reorder
-        df = df[self.feature_names]
-        
-        # Scale
-        df_scaled = self.scaler.transform(df)
-        print("✅ Preprocessing complete")
-        
-        return df_scaled
+    def preprocess_data(self, customer_data):
+        """Preprocess customer data for prediction"""
+        try:
+            # Create DataFrame
+            df = pd.DataFrame([customer_data])
+            
+            # Map categorical values
+            # Gender
+            df['Gender'] = df['Gender'].map({'Male': 1, 'Female': 0})
+            
+            # Partner and Dependents
+            df['Partner'] = df['Partner'].map({'Yes': 1, 'No': 0})
+            df['Dependents'] = df['Dependents'].map({'Yes': 1, 'No': 0})
+            
+            # Contract Type
+            contract_mapping = {
+                'Month-to-month': 0,
+                'One year': 1,
+                'Two year': 2
+            }
+            df['Contract'] = df['Contract'].map(contract_mapping)
+            
+            # Internet Service
+            internet_mapping = {
+                'No': 0,
+                'DSL': 1,
+                'Fiber optic': 2
+            }
+            df['InternetService'] = df['InternetService'].map(internet_mapping)
+            
+            # Payment Method
+            payment_mapping = {
+                'Electronic check': 0,
+                'Mailed check': 1,
+                'Bank transfer (automatic)': 2,
+                'Credit card (automatic)': 3
+            }
+            df['PaymentMethod'] = df['PaymentMethod'].map(payment_mapping)
+            
+            # Convert to numeric
+            numeric_columns = ['SeniorCitizen', 'tenure', 'MonthlyCharges', 'TotalCharges']
+            for col in numeric_columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+            # Fill any NaN values
+            df = df.fillna(0)
+            
+            return df
+            
+        except Exception as e:
+            print(f"Error in preprocessing: {str(e)}")
+            raise
     
     def predict(self, customer_data):
-        print("\n" + "=" * 60)
-        print("MAKING PREDICTION")
-        print("=" * 60)
-        
+        """
+        Make prediction for a single customer
+        Returns: (prediction, probability)
+        """
         try:
-            # Check if label_encoders exists
-            if not hasattr(self, 'label_encoders'):
-                raise AttributeError("label_encoders not found! This should never happen!")
+            # Preprocess the data
+            processed_data = self.preprocess_data(customer_data)
             
-            print(f"✅ label_encoders exists: {len(self.label_encoders)} encoders")
+            # Get prediction (0 or 1)
+            prediction = self.ensemble_model.predict(processed_data)[0]
             
-            # Preprocess
-            X = self.preprocess_input(customer_data)
+            # Get probability
+            try:
+                probabilities = self.ensemble_model.predict_proba(processed_data)[0]
+                # probabilities[1] = probability of churn (class 1)
+                churn_probability = float(probabilities[1])
+            except Exception as prob_error:
+                print(f"⚠️ Probability calculation issue: {str(prob_error)}")
+                # Fallback: if prediction is 1 (churn), use higher probability
+                churn_probability = 0.75 if prediction == 1 else 0.25
             
-            # Predict
-            rf_proba = self.rf_model.predict_proba(X)[0]
-            gb_proba = self.gb_model.predict_proba(X)[0]
+            # Ensure probability is between 0 and 1
+            churn_probability = max(0.0, min(1.0, churn_probability))
             
-            # Ensemble
-            ensemble_proba = (rf_proba + gb_proba) / 2
-            churn_probability = ensemble_proba[1]
+            print(f"✅ Prediction: {prediction}, Probability: {churn_probability:.2%}")
             
-            # Risk level
-            if churn_probability < 0.3:
-                risk_level = "Low Risk"
-                risk_color = "green"
-            elif churn_probability < 0.6:
-                risk_level = "Medium Risk"
-                risk_color = "orange"
-            elif churn_probability < 0.8:
-                risk_level = "High Risk"
-                risk_color = "red"
-            else:
-                risk_level = "Critical Risk"
-                risk_color = "purple"
-            
-            # Feature importance
-            feature_importance = []
-            importances = self.rf_model.feature_importances_
-            top_indices = importances.argsort()[-5:][::-1]
-            
-            for idx in top_indices:
-                feature_importance.append({
-                    'feature': self.feature_names[idx],
-                    'value': float(X[0][idx]),
-                    'importance': float(importances[idx])
-                })
-            
-            print(f"\n✅ PREDICTION SUCCESSFUL!")
-            print(f"   Probability: {churn_probability*100:.2f}%")
-            print(f"   Risk: {risk_level}")
-            
-            return {
-                'churn_probability': float(churn_probability),
-                'risk_level': risk_level,
-                'risk_color': risk_color,
-                'will_churn': bool(churn_probability > 0.5),
-                'confidence': float(max(ensemble_proba)),
-                'feature_importance': feature_importance
-            }
+            return int(prediction), float(churn_probability)
             
         except Exception as e:
-            print(f"\n❌ PREDICTION FAILED: {e}")
+            print(f"❌ Error in prediction: {str(e)}")
             import traceback
             traceback.print_exc()
+            # Return safe default values
+            return 0, 0.5
+    
+    def predict_batch(self, customers_df):
+        """
+        Make predictions for multiple customers
+        Returns: DataFrame with predictions and probabilities
+        """
+        try:
+            predictions = []
+            probabilities = []
+            
+            for idx, row in customers_df.iterrows():
+                customer_data = row.to_dict()
+                pred, prob = self.predict(customer_data)
+                predictions.append(pred)
+                probabilities.append(prob)
+            
+            customers_df['Prediction'] = predictions
+            customers_df['ChurnProbability'] = probabilities
+            customers_df['RiskLevel'] = customers_df['ChurnProbability'].apply(
+                lambda x: 'High' if x > 0.7 else ('Medium' if x > 0.3 else 'Low')
+            )
+            
+            return customers_df
+            
+        except Exception as e:
+            print(f"Error in batch prediction: {str(e)}")
             raise
 
-
-if __name__ == "__main__":
-
-    print("\n" + "=" * 60)
-    print("TESTING CHURN PREDICTOR")
-    print("=" * 60)
-    
+# Test function
+if __name__== "__main__":
+    print("Testing ChurnPredictor...")
     predictor = ChurnPredictor()
     
+    # Test with sample data
     test_customer = {
-        'gender': 'Male',
+        'Gender': 'Male',
         'SeniorCitizen': 0,
         'Partner': 'No',
         'Dependents': 'No',
-        'tenure': 3,
-        'PhoneService': 'Yes',
-        'MultipleLines': 'No',
-        'InternetService': 'Fiber optic',
-        'OnlineSecurity': 'No',
-        'OnlineBackup': 'No',
-        'DeviceProtection': 'No',
-        'TechSupport': 'No',
-        'StreamingTV': 'No',
-        'StreamingMovies': 'No',
+        'tenure': 2,
         'Contract': 'Month-to-month',
-        'PaperlessBilling': 'Yes',
         'PaymentMethod': 'Electronic check',
-        'MonthlyCharges': 95.0,
-        'TotalCharges': 285.0
+        'MonthlyCharges': 89.0,
+        'TotalCharges': 178.0,
+        'InternetService': 'Fiber optic'
     }
     
-    result = predictor.predict(test_customer)
-    
-    print("\n" + "=" * 60)
-    print("TEST COMPLETE!")
-    print("=" * 60)
+    prediction, probability = predictor.predict(test_customer)
+    print(f"\nTest Result:")
+    print(f"Prediction: {'Churn' if prediction == 1 else 'Stay'}")
+    print(f"Probability: {probability:.2%}")
