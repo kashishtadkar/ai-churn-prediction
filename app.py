@@ -5,19 +5,25 @@ from prediction import ChurnPredictor
 import os
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend
+CORS(app)
 
-# Initialize predictor
 predictor = ChurnPredictor()
 
 @app.route('/')
 def home():
+    return render_template('home.html')
+
+@app.route('/dashboard')
+def dashboard():
     return render_template('dashboard.html')
+
+@app.route('/analytics')
+def analytics():
+    return render_template('analytics.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get form data
         gender = request.form.get('gender')
         senior_citizen = int(request.form.get('senior_citizen', 0))
         partner = request.form.get('partner')
@@ -29,7 +35,6 @@ def predict():
         total_charges = float(request.form.get('total_charges', 0))
         internet_service = request.form.get('internet_service')
         
-        # Create customer data dictionary
         customer_data = {
             'Gender': gender,
             'SeniorCitizen': senior_citizen,
@@ -43,10 +48,8 @@ def predict():
             'InternetService': internet_service
         }
         
-        # Make prediction using ChurnPredictor
         prediction, probability = predictor.predict(customer_data)
         
-        # Return JSON response
         return jsonify({
             'prediction': 'Yes' if prediction == 1 else 'No',
             'churn_probability': float(probability * 100)

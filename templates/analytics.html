@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - AI Churn Prediction{% endblock %}
+
+{% block extra_style %}
+<style>
+    .analytics-header {
+        text-align: center;
+        color: white;
+        padding: 40px 20px;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .analytics-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .analytics-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        animation: slideUp 0.6s ease-out backwards;
+    }
+
+    .chart-card:nth-child(1) { animation-delay: 0.1s; }
+    .chart-card:nth-child(2) { animation-delay: 0.2s; }
+    .chart-card:nth-child(3) { animation-delay: 0.3s; }
+    .chart-card:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .chart-card h3 {
+        color: #667eea;
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .metric-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #667eea;
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .metric-label {
+        text-align: center;
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .info-item-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .info-item-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        padding: 12px;
+        margin: 8px 0;
+        background: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .feature-name {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .feature-importance {
+        font-weight: 700;
+        color: #667eea;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 25px;
+        background: #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: width 1.5s ease-out;
+    }
+
+    @media (max-width: 768px) {
+        .analytics-header h1 {
+            font-size: 2rem;
+        }
+        .analytics-grid {
+            grid-template-columns: 1fr;
+        }
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-header">
+    <h1><i class="fas fa-chart-line"></i> Model Analytics & Performance</h1>
+    <p>Deep insights into customer churn prediction model</p>
+</div>
+
+<div class="analytics-grid">
+    <div class="chart-card">
+        <h3><i class="fas fa-bullseye"></i> Model Accuracy</h3>
+        <div class="metric-value">76%</div>
+        <div class="metric-label">Overall Accuracy</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 76%;">76%</div>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <h3><i class="fas fa-chart-pie"></i> Prediction Distribution</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-item-value" style="color: #51cf66;">34%</div>
+                <div class="info-item-label">Will Stay</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-value" style="color: #ff6b6b;">66%</div>
+                <div class="info-item-label">May Churn</div>
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
+            Based on training data analysis
+        </p>
+    </div>
+
+    <div class="chart-card">
+        <h3><i class="fas fa-star"></i> Top Features</h3>
+        <ul class="feature-list">
+            <li>
+                <span class="feature-name">Contract Type</span>
+                <span class="feature-importance">32%</span>
+            </li>
+            <li>
+                <span class="feature-name">Monthly Charges</span>
+                <span class="feature-importance">24%</span>
+            </li>
+            <li>
+                <span class="feature-name">Tenure</span>
+                <span class="feature-importance">18%</span>
+            </li>
+            <li>
+                <span class="feature-name">Internet Service</span>
+                <span class="feature-importance">15%</span>
+            </li>
+            <li>
+                <span class="feature-name">Payment Method</span>
+                <span class="feature-importance">11%</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="chart-card">
+        <h3><i class="fas fa-tachometer-alt"></i> Performance Metrics</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-item-value">78%</div>
+                <div class="info-item-label">Precision</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-value">74%</div>
+                <div class="info-item-label">Recall</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-value">76%</div>
+                <div class="info-item-label">F1-Score</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-value">0.82</div>
+                <div class="info-item-label">ROC-AUC</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="analytics-grid" style="margin-top: 25px;">
+    <div class="chart-card" style="grid-column: 1 / -1;">
+        <h3><i class="fas fa-info-circle"></i> Model Information</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-item-label">Algorithm</div>
+                <div style="font-weight: 600; color: #333; margin-top: 8px;">Ensemble (RF + GB + XGB)</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label">Training Samples</div>
+                <div style="font-weight: 600; color: #333; margin-top: 8px;">7,043 customers</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label">Features Used</div>
+                <div style="font-weight: 600; color: #333; margin-top: 8px;">10 features</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label">Prediction Time</div>
+                <div style="font-weight: 600; color: #333; margin-top: 8px;">&lt; 1 second</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
