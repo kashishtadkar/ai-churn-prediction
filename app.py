@@ -25,8 +25,7 @@ predictor = ChurnPredictor()
 @app.route('/')
 def index():
     """Home page"""
-    return render_template('index.html')
-
+    return render_template('home.html')
 @app.route('/dashboard')
 def dashboard():
     """Dashboard page with prediction form"""
