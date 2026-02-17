@@ -1,218 +1,268 @@
 {% extends "base.html" %}
 
-{% block title %}Home - AI Churn Prediction{% endblock %}
+{% block title %}Home - AI Churn Predictor{% endblock %}
 
-{% block extra_style %}
+{% block content %}
 <style>
     .hero {
-        text-align: center;
-        color: white;
-        padding: 80px 20px;
-        animation: fadeIn 1s ease-out;
+        min-height: calc(100vh - 65px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a0e1a;
+        position: relative;
+        overflow: hidden;
+        padding: 2rem;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .hero::before {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .hero-content {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 229, 255, 0.1);
+        border: 1px solid rgba(0, 229, 255, 0.3);
+        color: #00e5ff;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
     }
 
     .hero h1 {
         font-size: 3.5rem;
-        font-weight: 700;
-        margin-bottom: 20px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero h1 span {
+        background: linear-gradient(135deg, #00e5ff, #0080ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .hero p {
-        font-size: 1.3rem;
-        margin-bottom: 40px;
-        opacity: 0.95;
+        font-size: 1.2rem;
+        color: #8899aa;
+        margin-bottom: 2.5rem;
+        line-height: 1.7;
     }
 
-    .cta-button {
-        display: inline-block;
-        background: white;
-        color: #667eea;
-        padding: 18px 40px;
-        border-radius: 50px;
+    .hero-btns {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 4rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero {
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
         text-decoration: none;
-        font-weight: 600;
-        font-size: 1.1rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .cta-button:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    .btn-hero-primary {
+        background: linear-gradient(135deg, #0080ff, #00e5ff);
+        color: white;
+        border: none;
     }
 
-    .features {
+    .btn-hero-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 229, 255, 0.4);
+    }
+
+    .btn-hero-outline {
+        background: transparent;
+        border: 1px solid #1e3a5f;
+        color: #8899aa;
+    }
+
+    .btn-hero-outline:hover {
+        border-color: #00e5ff;
+        color: #00e5ff;
+        transform: translateY(-3px);
+    }
+
+    .feature-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
-        margin-top: 60px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+        position: relative;
+        z-index: 1;
     }
 
     .feature-card {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        padding: 30px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
+        background: #0f1e35;
+        border: 1px solid #1e3a5f;
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
         transition: all 0.3s ease;
-        animation: fadeInUp 0.8s ease-out backwards;
-    }
-
-    .feature-card:nth-child(1) { animation-delay: 0.2s; }
-    .feature-card:nth-child(2) { animation-delay: 0.4s; }
-    .feature-card:nth-child(3) { animation-delay: 0.6s; }
-    .feature-card:nth-child(4) { animation-delay: 0.8s; }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        text-decoration: none;
+        display: block;
     }
 
     .feature-card:hover {
-        transform: translateY(-10px);
-        background: rgba(255, 255, 255, 0.25);
+        border-color: #00e5ff;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 229, 255, 0.15);
     }
 
     .feature-icon {
-        font-size: 3rem;
-        margin-bottom: 15px;
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.8rem;
     }
 
+    .icon-blue { background: rgba(0, 229, 255, 0.1); color: #00e5ff; }
+    .icon-green { background: rgba(105, 240, 174, 0.1); color: #69f0ae; }
+    .icon-orange { background: rgba(255, 171, 64, 0.1); color: #ffab40; }
+    .icon-purple { background: rgba(179, 136, 255, 0.1); color: #b388ff; }
+
     .feature-card h3 {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
     }
 
     .feature-card p {
-        opacity: 0.9;
-        line-height: 1.6;
+        color: #8899aa;
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 
-    .stats {
+    .stats-row {
         display: flex;
         justify-content: center;
-        gap: 40px;
-        margin-top: 60px;
+        gap: 3rem;
+        margin-bottom: 4rem;
         flex-wrap: wrap;
     }
 
     .stat-item {
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        padding: 25px 35px;
-        border-radius: 15px;
-        color: white;
         text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        display: block;
-        margin-bottom: 5px;
+    .stat-item .num {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #00e5ff;
     }
 
-    .stat-label {
-        font-size: 1rem;
-        opacity: 0.95;
-    }
-
-    @media (max-width: 768px) {
-        .hero h1 {
-            font-size: 2.5rem;
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-        }
-
-        .cta-button {
-            padding: 15px 30px;
-            font-size: 1rem;
-        }
-
-        .features {
-            grid-template-columns: 1fr;
-        }
-
-        .stats {
-            gap: 20px;
-        }
-
-        .stat-item {
-            padding: 20px 25px;
-        }
+    .stat-item .label {
+        color: #8899aa;
+        font-size: 0.85rem;
     }
 </style>
-{% endblock %}
 
-{% block content %}
+<!-- HERO -->
 <div class="hero">
-    <h1><i class="fas fa-brain"></i> AI-Powered Churn Prediction</h1>
-    <p>Predict customer retention with 76% machine learning accuracy</p>
-    <a href="/dashboard" class="cta-button">
-        <i class="fas fa-rocket"></i> Try Demo Now
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="fas fa-robot"></i>
+            AI-Powered Churn Prediction
+        </div>
+        <h1>Predict Customer <span>Churn</span> Before It Happens</h1>
+        <p>Use machine learning to identify at-risk customers and take proactive retention actions with real-time probability scores and risk categorization.</p>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="num">95%</div>
+                <div class="label">Accuracy</div>
+            </div>
+            <div class="stat-item">
+                <div class="num">10K+</div>
+                <div class="label">Records/min</div>
+            </div>
+            <div class="stat-item">
+                <div class="num">3</div>
+                <div class="label">Risk Levels</div>
+            </div>
+            <div class="stat-item">
+                <div class="num">Real-time</div>
+                <div class="label">Predictions</div>
+            </div>
+        </div>
+
+        <div class="hero-btns">
+            <a href="/batch" class="btn-hero btn-hero-primary">
+                <i class="fas fa-rocket"></i> Try Batch Upload
+            </a>
+            <a href="/dashboard" class="btn-hero btn-hero-outline">
+                <i class="fas fa-user"></i> Single Prediction
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- FEATURES -->
+<div class="feature-grid">
+    <a href="/dashboard" class="feature-card">
+        <div class="feature-icon icon-blue">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <h3>Single Prediction</h3>
+        <p>Enter customer details and get instant churn probability with risk level and recommendations</p>
     </a>
-</div>
-
-<div class="stats">
-    <div class="stat-item">
-        <span class="stat-number">76%</span>
-        <span class="stat-label">Accuracy</span>
-    </div>
-    <div class="stat-item">
-        <span class="stat-number">&lt;1s</span>
-        <span class="stat-label">Prediction Time</span>
-    </div>
-    <div class="stat-item">
-        <span class="stat-number">∞</span>
-        <span class="stat-label">Free Predictions</span>
-    </div>
-</div>
-
-<div class="features">
-    <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-        <h3>Instant Predictions</h3>
-        <p>Get real-time churn predictions in less than a second with our optimized ML models.</p>
-    </div>
-    
-    <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-        <h3>Visual Analytics</h3>
-        <p>Beautiful charts and graphs to understand customer behavior patterns.</p>
-    </div>
-    
-    <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-brain"></i></div>
-        <h3>AI-Powered</h3>
-        <p>Using ensemble machine learning models for maximum accuracy.</p>
-    </div>
-    
-    <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-        <h3>Reliable Results</h3>
-        <p>76% accuracy rate validated on real customer data.</p>
-    </div>
+    <a href="/batch" class="feature-card">
+        <div class="feature-icon icon-green">
+            <i class="fas fa-file-csv"></i>
+        </div>
+        <h3>Batch Upload</h3>
+        <p>Upload CSV files with thousands of customers and get predictions for all at once</p>
+    </a>
+    <a href="/history" class="feature-card">
+        <div class="feature-icon icon-orange">
+            <i class="fas fa-history"></i>
+        </div>
+        <h3>History Tracking</h3>
+        <p>View all past predictions, track trends, and manage your prediction data</p>
+    </a>
+    <a href="/analytics" class="feature-card">
+        <div class="feature-icon icon-purple">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <h3>Analytics</h3>
+        <p>Visualize churn patterns, risk distributions, and business insights with charts</p>
+    </a>
 </div>
 {% endblock %}
