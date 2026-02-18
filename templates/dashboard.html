@@ -1,641 +1,219 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Churn Prediction - Professional Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            min-height: 100vh;
-            padding: 20px;
-            animation: gradientShift 15s ease infinite;
-            background-size: 400% 400%;
-        }
+{% block title %}Dashboard - AI Churn Predictor{% endblock %}
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-tachometer-alt"></i> Single Customer Prediction</h1>
+    <p>Enter customer details to predict churn probability</p>
+</div>
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-        }
-
-        .stats-bar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-radius: 15px;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card i {
-            font-size: 1.5rem;
-            margin-right: 10px;
-        }
-
-        .main-card {
-            background: white;
-            border-radius: 25px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.8s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            color: #667eea;
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .form-group {
-            animation: fadeInUp 0.6s ease-out backwards;
-        }
-
-        .form-group:nth-child(1) { animation-delay: 0.1s; }
-        .form-group:nth-child(2) { animation-delay: 0.2s; }
-        .form-group:nth-child(3) { animation-delay: 0.3s; }
-        .form-group:nth-child(4) { animation-delay: 0.4s; }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        label {
-            display: block;
-            color: #4a5568;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            margin-top: 10px;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 8px;
-            transition: background 0.3s ease;
-        }
-
-        .radio-option:hover {
-            background: #f7fafc;
-        }
-
-        .radio-option input[type="radio"] {
-            width: auto;
-            margin: 0;
-            cursor: pointer;
-        }
-
-        .predict-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 30px;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .predict-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
-        }
-
-        .predict-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .predict-btn i {
-            margin-right: 10px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 30px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .result-card {
-            display: none;
-            margin-top: 30px;
-            padding: 30px;
-            border-radius: 20px;
-            animation: bounceIn 0.6s ease-out;
-        }
-
-        @keyframes bounceIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.3);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.05);
-            }
-            70% {
-                transform: scale(0.9);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .result-high-risk {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-        }
-
-        .result-low-risk {
-            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
-            color: white;
-        }
-
-        .result-icon {
-            font-size: 4rem;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .result-title {
-            font-size: 2rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .result-probability {
-            font-size: 1.3rem;
-            text-align: center;
-            opacity: 0.95;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar {
-            background: rgba(255, 255, 255, 0.3);
-            height: 15px;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: white;
-            border-radius: 10px;
-            transition: width 1s ease-out;
-        }
-
-        .recommendations {
-            margin-top: 25px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-        }
-
-        .recommendations h3 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-        }
-
-        .recommendations ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .recommendations li {
-            padding: 10px 0;
-            padding-left: 30px;
-            position: relative;
-        }
-
-        .recommendations li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .footer {
-            text-align: center;
-            color: white;
-            margin-top: 30px;
-            opacity: 0.9;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .main-card {
-                padding: 25px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fas fa-brain"></i> AI-Powered Churn Prediction</h1>
-            <p>Predict customer retention with 76% ML accuracy</p>
-        </div>
-
-        <!-- Stats Bar -->
-        <div class="stats-bar">
-            <div class="stat-card">
-                <i class="fas fa-chart-line"></i>
-                <span><strong>76%</strong> Accuracy</span>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <span><strong>Instant</strong> Results</span>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-robot"></i>
-                <span><strong>AI</strong> Powered</span>
-            </div>
-        </div>
-
-        <!-- Main Form Card -->
-        <div class="main-card">
+<div class="section">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div class="card">
             <form id="predictionForm">
-                <!-- Demographics Section -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-user"></i>
-                        Customer Demographics
+                <h3 style="margin-bottom: 1.5rem; color: #00d4ff;">
+                    <i class="fas fa-user"></i> Customer Demographics
+                </h3>
+                
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="gender" value="Male" checked> Male
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="gender" value="Female"> Female
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Gender</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="gender" value="Male" required>
-                                    <span><i class="fas fa-mars"></i> Male</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="gender" value="Female">
-                                    <span><i class="fas fa-venus"></i> Female</span>
-                                </label>
-                            </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Senior Citizen</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="senior" value="1"> Yes
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="senior" value="0" checked> No
+                            </label>
                         </div>
-
-                        <div class="form-group">
-                            <label>Senior Citizen</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="senior_citizen" value="0" required>
-                                    <span>No</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="senior_citizen" value="1">
-                                    <span>Yes</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Partner</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="partner" value="Yes" required>
-                                    <span>Yes</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="partner" value="No">
-                                    <span>No</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Dependents</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="dependents" value="Yes" required>
-                                    <span>Yes</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="dependents" value="No">
-                                    <span>No</span>
-                                </label>
-                            </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Partner</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="partner" value="Yes"> Yes
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="partner" value="No" checked> No
+                            </label>
                         </div>
                     </div>
                 </div>
-
-                <!-- Account Information -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-file-contract"></i>
-                        Account Information
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-calendar-alt"></i> Tenure (months)</label>
-                            <input type="number" name="tenure" min="0" max="72" required placeholder="e.g., 24">
-                        </div>
-
-                        <div class="form-group">
-                            <label><i class="fas fa-file-signature"></i> Contract Type</label>
-                            <select name="contract" required>
-                                <option value="">Select contract type</option>
-                                <option value="Month-to-month">Month-to-month</option>
-                                <option value="One year">One year</option>
-                                <option value="Two year">Two year</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label><i class="fas fa-credit-card"></i> Payment Method</label>
-                            <select name="payment_method" required>
-                                <option value="">Select payment method</option>
-                                <option value="Electronic check">Electronic check</option>
-                                <option value="Mailed check">Mailed check</option>
-                                <option value="Bank transfer (automatic)">Bank transfer</option>
-                                <option value="Credit card (automatic)">Credit card</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label><i class="fas fa-wifi"></i> Internet Service</label>
-                            <select name="internet_service" required>
-                                <option value="">Select internet service</option>
-                                <option value="DSL">DSL</option>
-                                <option value="Fiber optic">Fiber optic</option>
-                                <option value="No">No internet service</option>
-                            </select>
-                        </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Dependents</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="dependents" value="Yes"> Yes
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="dependents" value="No" checked> No
+                        </label>
                     </div>
                 </div>
-
-                <!-- Billing Information -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <i class="fas fa-dollar-sign"></i>
-                        Billing Information
+                
+                <h3 style="margin: 2rem 0 1.5rem; color: #00d4ff;">
+                    <i class="fas fa-file-invoice-dollar"></i> Account Information
+                </h3>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Tenure (months)</label>
+                        <input type="number" name="tenure" class="form-control" min="0" max="100" value="12" required>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label><i class="fas fa-money-bill-wave"></i> Monthly Charges ($)</label>
-                            <input type="number" step="0.01" name="monthly_charges" min="0" required placeholder="e.g., 65.50">
-                        </div>
-
-                        <div class="form-group">
-                            <label><i class="fas fa-receipt"></i> Total Charges ($)</label>
-                            <input type="number" step="0.01" name="total_charges" min="0" required placeholder="e.g., 1573.20">
-                        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Contract Type</label>
+                        <select name="contract" class="form-control" required>
+                            <option value="Month-to-month">Month-to-month</option>
+                            <option value="One year">One year</option>
+                            <option value="Two year">Two year</option>
+                        </select>
                     </div>
                 </div>
-
-                <!-- Submit Button -->
-                <button type="submit" class="predict-btn">
-                    <i class="fas fa-magic"></i> Predict Churn Risk
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment" class="form-control" required>
+                            <option value="Electronic check">Electronic check</option>
+                            <option value="Mailed check">Mailed check</option>
+                            <option value="Bank transfer (automatic)">Bank transfer (automatic)</option>
+                            <option value="Credit card (automatic)">Credit card (automatic)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Internet Service</label>
+                        <select name="internet" class="form-control" required>
+                            <option value="Fiber optic">Fiber optic</option>
+                            <option value="DSL">DSL</option>
+                            <option value="No">No internet service</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Monthly Charges ($)</label>
+                        <input type="number" name="monthly" class="form-control" step="0.01" value="70.00" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Total Charges ($)</label>
+                        <input type="number" name="total" class="form-control" step="0.01" value="840.00" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 1rem;">
+                    <i class="fas fa-magic"></i> Predict Churn
                 </button>
             </form>
-
-            <!-- Loading State -->
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Analyzing customer data with AI...</p>
-            </div>
-
-            <!-- Result Card -->
-            <div class="result-card" id="resultCard">
-                <div class="result-icon" id="resultIcon"></div>
-                <div class="result-title" id="resultTitle"></div>
-                <div class="result-probability" id="resultProbability"></div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="recommendations" id="recommendations"></div>
-            </div>
         </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <p>Powered by Machine Learning • 76% Accuracy • Real-time Predictions</p>
+        
+        <div id="resultCard" style="display: none; margin-top: 2rem;">
+            <div class="card" style="border: 2px solid #00d4ff;">
+                <h3 style="margin-bottom: 1.5rem; color: #00d4ff;">
+                    <i class="fas fa-chart-line"></i> Prediction Result
+                </h3>
+                
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;" id="resultIcon"></div>
+                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: #ffffff;" id="resultStatus"></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem;" id="resultProb"></div>
+                    <div style="color: #8899aa;">Churn Probability</div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,212,255,0.05); border-radius: 10px;" id="resultBadge"></div>
+                </div>
+                
+                <div id="recommendations" style="padding: 1.5rem; background: #1b263b; border-radius: 10px; margin-top: 1rem;"></div>
+            </div>
         </div>
     </div>
+</div>
 
-    <script>
-    const form = document.getElementById('predictionForm');
-    const loading = document.getElementById('loading');
-    const resultCard = document.getElementById('resultCard');
-
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+<script>
+document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        Gender: formData.get('gender'),
+        SeniorCitizen: parseInt(formData.get('senior')),
+        Partner: formData.get('partner'),
+        Dependents: formData.get('dependents'),
+        tenure: parseInt(formData.get('tenure')),
+        Contract: formData.get('contract'),
+        PaymentMethod: formData.get('payment'),
+        MonthlyCharges: parseFloat(formData.get('monthly')),
+        TotalCharges: parseFloat(formData.get('total')),
+        InternetService: formData.get('internet')
+    };
+    
+    try {
+        const res = await fetch('/predict', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
         
-        // Show loading
-        form.style.display = 'none';
-        loading.style.display = 'block';
-        resultCard.style.display = 'none';
+        const result = await res.json();
         
-        // Get form data
-        const formData = new FormData(form);
-        
-        try {
-            const response = await fetch('/predict', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            
-            // Hide loading
-            loading.style.display = 'none';
-            
-            // Show results
-            displayResults(data);
-            
-        } catch (error) {
-            loading.style.display = 'none';
-            alert('Error making prediction. Please try again.');
-            form.style.display = 'block';
-        }
-    });
-
-    function displayResults(data) {
         const resultCard = document.getElementById('resultCard');
-        const resultIcon = document.getElementById('resultIcon');
-        const resultTitle = document.getElementById('resultTitle');
-        const resultProbability = document.getElementById('resultProbability');
-        const progressFill = document.getElementById('progressFill');
-        const recommendations = document.getElementById('recommendations');
+        const icon = document.getElementById('resultIcon');
+        const status = document.getElementById('resultStatus');
+        const prob = document.getElementById('resultProb');
+        const badge = document.getElementById('resultBadge');
+        const recs = document.getElementById('recommendations');
         
-        const probability = parseFloat(data.churn_probability);
-        const willChurn = data.prediction === 'Yes';
+        const probability = Math.round(result.probability * 100);
         
-        // Set result style
-        if (willChurn) {
-            resultCard.className = 'result-card result-high-risk';
-            resultIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-            resultTitle.textContent = 'HIGH CHURN RISK';
+        if (result.risk_level === 'High') {
+            icon.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #ff5252;"></i>';
+            status.textContent = 'WILL CHURN';
+            status.style.color = '#ff5252';
+            prob.textContent = probability + '%';
+            prob.style.color = '#ff5252';
+            badge.innerHTML = '<span class="badge badge-high">HIGH RISK</span>';
+            recs.innerHTML = '<h4 style="color: #ff5252; margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Recommendations</h4><ul style="color: #c0cde0; line-height: 1.8;"><li>Contact customer immediately</li><li>Offer retention incentives or discounts</li><li>Review contract options and upgrade paths</li><li>Assign dedicated account manager</li></ul>';
+        } else if (result.risk_level === 'Medium') {
+            icon.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ffab40;"></i>';
+            status.textContent = 'MAY CHURN';
+            status.style.color = '#ffab40';
+            prob.textContent = probability + '%';
+            prob.style.color = '#ffab40';
+            badge.innerHTML = '<span class="badge badge-medium">MEDIUM RISK</span>';
+            recs.innerHTML = '<h4 style="color: #ffab40; margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Recommendations</h4><ul style="color: #c0cde0; line-height: 1.8;"><li>Monitor customer engagement closely</li><li>Send personalized offers</li><li>Improve service quality</li><li>Request feedback survey</li></ul>';
         } else {
-            resultCard.className = 'result-card result-low-risk';
-            resultIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-            resultTitle.textContent = 'LOW CHURN RISK';
-        }
-        
-        resultProbability.textContent = 'Churn Probability: ' + probability.toFixed(1) + '%';
-        
-        // Animate progress bar
-        setTimeout(function() {
-            progressFill.style.width = probability + '%';
-        }, 100);
-        
-        // Add recommendations
-        if (willChurn) {
-            recommendations.innerHTML = '<h3><i class="fas fa-lightbulb"></i> Recommended Actions:</h3><ul><li>Contact customer immediately for retention offer</li><li>Provide personalized discount or upgrade</li><li>Assign dedicated account manager</li><li>Conduct satisfaction survey</li></ul>';
-        } else {
-            recommendations.innerHTML = '<h3><i class="fas fa-thumbs-up"></i> Customer Status:</h3><ul><li>Customer is likely to stay</li><li>Continue standard engagement</li><li>Monitor quarterly for changes</li><li>Consider upsell opportunities</li></ul>';
+            icon.innerHTML = '<i class="fas fa-check-circle" style="color: #69f0ae;"></i>';
+            status.textContent = 'WILL STAY';
+            status.style.color = '#69f0ae';
+            prob.textContent = probability + '%';
+            prob.style.color = '#69f0ae';
+            badge.innerHTML = '<span class="badge badge-low">LOW RISK</span>';
+            recs.innerHTML = '<h4 style="color: #69f0ae; margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Recommendations</h4><ul style="color: #c0cde0; line-height: 1.8;"><li>Maintain current service quality</li><li>Offer loyalty rewards</li><li>Cross-sell premium features</li><li>Request referrals</li></ul>';
         }
         
         resultCard.style.display = 'block';
+        resultCard.scrollIntoView({ behavior: 'smooth' });
         
-        // Scroll to results
-        resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (error) {
+        alert('Error making prediction: ' + error.message);
     }
+});
 </script>
-</body>
-</html>
+{% endblock %}
