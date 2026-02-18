@@ -12,7 +12,7 @@ import pandas as pd
 import uuid
 import os
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///churn_predictions.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -384,6 +384,6 @@ def get_stats():
         return jsonify({'error': str(e)}), 500
 
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
