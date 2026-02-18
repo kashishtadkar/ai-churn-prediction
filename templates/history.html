@@ -1,324 +1,144 @@
 {% extends "base.html" %}
 
-{% block title %}Prediction History - AI Churn Prediction{% endblock %}
-
-{% block extra_style %}
-<style>
-    .history-header {
-        text-align: center;
-        color: white;
-        padding: 40px 20px;
-        animation: fadeIn 0.8s ease-out;
-    }
-
-    .history-header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 10px;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        max-width: 1200px;
-        margin: 30px auto;
-        padding: 0 20px;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        animation: slideUp 0.8s ease-out;
-    }
-
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
-    }
-
-    .stat-label {
-        color: #666;
-        font-size: 0.9rem;
-    }
-
-    .uploads-section {
-        max-width: 1200px;
-        margin: 30px auto;
-        padding: 0 20px;
-    }
-
-    .upload-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-
-    .upload-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    }
-
-    .upload-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .upload-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #333;
-    }
-
-    .upload-date {
-        color: #666;
-        font-size: 0.9rem;
-    }
-
-    .upload-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
-    }
-
-    .upload-stat {
-        text-align: center;
-        padding: 10px;
-        border-radius: 8px;
-        background: #f8f9fa;
-    }
-
-    .upload-stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-
-    .upload-stat-label {
-        font-size: 0.8rem;
-        color: #666;
-        margin-top: 5px;
-    }
-
-    .high-risk { color: #ff6b6b; }
-    .medium-risk { color: #ffa726; }
-    .low-risk { color: #51cf66; }
-
-    .delete-btn {
-        padding: 8px 16px;
-        background: #ff6b6b;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-    }
-
-    .delete-btn:hover {
-        background: #ee5a52;
-        transform: scale(1.05);
-    }
-
-    .no-data {
-        text-align: center;
-        padding: 60px 20px;
-        color: white;
-    }
-
-    .no-data i {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        opacity: 0.5;
-    }
-
-    .button-group {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 768px) {
-        .upload-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .button-group {
-            width: 100%;
-        }
-
-        .delete-btn {
-            flex: 1;
-        }
-    }
-</style>
-{% endblock %}
+{% block title %}History - AI Churn Predictor{% endblock %}
 
 {% block content %}
-<div class="history-header">
+<div class="page-header">
     <h1><i class="fas fa-history"></i> Prediction History</h1>
     <p>View and manage all your past predictions</p>
 </div>
 
-<div class="stats-grid" id="statsGrid">
-    <div class="stat-card">
-        <div class="stat-value" id="totalUploads">0</div>
-        <div class="stat-label">Total Uploads</div>
+<div class="section">
+    <!-- Statistics Cards -->
+    <div class="grid-5" style="margin-bottom: 2rem;" id="stats-section">
+        <div class="stat-card total">
+            <div class="stat-number" id="total-uploads">0</div>
+            <div class="stat-label">Total Uploads</div>
+        </div>
+        <div class="stat-card total">
+            <div class="stat-number" id="total-customers">0</div>
+            <div class="stat-label">Total Customers</div>
+        </div>
+        <div class="stat-card high">
+            <div class="stat-number" id="high-risk">0</div>
+            <div class="stat-label">High Risk</div>
+        </div>
+        <div class="stat-card medium">
+            <div class="stat-number" id="medium-risk">0</div>
+            <div class="stat-label">Medium Risk</div>
+        </div>
+        <div class="stat-card low">
+            <div class="stat-number" id="low-risk">0</div>
+            <div class="stat-label">Low Risk</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-value" id="totalCustomers">0</div>
-        <div class="stat-label">Total Customers</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value high-risk" id="highRiskCount">0</div>
-        <div class="stat-label">High Risk</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value medium-risk" id="mediumRiskCount">0</div>
-        <div class="stat-label">Medium Risk</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value low-risk" id="lowRiskCount">0</div>
-        <div class="stat-label">Low Risk</div>
-    </div>
-</div>
 
-<div class="uploads-section" id="uploadsSection">
-    <!-- Uploads will be loaded here -->
+    <!-- Upload History -->
+    <div id="uploads-container">
+        <div style="text-align: center; padding: 3rem; color: #8899aa;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Loading history...</p>
+        </div>
+    </div>
 </div>
 
 <script>
-    // Load statistics
-    async function loadStats() {
-        try {
-            const response = await fetch('/api/stats');
-            const data = await response.json();
-            
-            document.getElementById('totalUploads').textContent = data.total_uploads;
-            document.getElementById('totalCustomers').textContent = data.total_customers;
-            document.getElementById('highRiskCount').textContent = data.high_risk;
-            document.getElementById('mediumRiskCount').textContent = data.medium_risk;
-            document.getElementById('lowRiskCount').textContent = data.low_risk;
-        } catch (error) {
-            console.error('Error loading stats:', error);
-        }
-    }
-
-    // Load uploads
-    async function loadUploads() {
-        try {
-            const response = await fetch('/api/uploads');
-            const data = await response.json();
-            
-            const uploadsSection = document.getElementById('uploadsSection');
-            
-            if (data.uploads.length === 0) {
-                uploadsSection.innerHTML = '<div class="no-data">' +
-                    '<i class="fas fa-inbox"></i>' +
-                    '<h2>No Uploads Yet</h2>' +
-                    '<p>Upload your first CSV file to see predictions here!</p>' +
-                    '<a href="/batch" style="color: white; text-decoration: underline; margin-top: 15px; display: inline-block;">' +
-                    'Go to Batch Upload</a></div>';
-                return;
-            }
-            
-            let html = '';
-            data.uploads.forEach(function(upload) {
-                html += '<div class="upload-card">' +
-                    '<div class="upload-header">' +
-                    '<div>' +
-                    '<div class="upload-title">' +
-                    '<i class="fas fa-file-csv"></i> ' + upload.filename +
-                    '</div>' +
-                    '<div class="upload-date">' +
-                    '<i class="fas fa-clock"></i> ' + new Date(upload.created_at).toLocaleString() +
-                    '</div>' +
-                    '</div>' +
-                    '<div class="button-group">' +
-                    '<button class="delete-btn" onclick="deleteUpload(\'' + upload.upload_id + '\')">' +
-                    '<i class="fas fa-trash"></i> Delete' +
-                    '</button>' +
-                    '</div>' +
-                    '</div>' +
-                    '<div class="upload-stats">' +
-                    '<div class="upload-stat">' +
-                    '<div class="upload-stat-value">' + upload.total_customers + '</div>' +
-                    '<div class="upload-stat-label">Total Customers</div>' +
-                    '</div>' +
-                    '<div class="upload-stat">' +
-                    '<div class="upload-stat-value high-risk">' + upload.high_risk_count + '</div>' +
-                    '<div class="upload-stat-label">High Risk</div>' +
-                    '</div>' +
-                    '<div class="upload-stat">' +
-                    '<div class="upload-stat-value medium-risk">' + upload.medium_risk_count + '</div>' +
-                    '<div class="upload-stat-label">Medium Risk</div>' +
-                    '</div>' +
-                    '<div class="upload-stat">' +
-                    '<div class="upload-stat-value low-risk">' + upload.low_risk_count + '</div>' +
-                    '<div class="upload-stat-label">Low Risk</div>' +
-                    '</div>' +
-                    '</div>' +
-                    '</div>';
-            });
-            
-            uploadsSection.innerHTML = html;
-        } catch (error) {
-            console.error('Error loading uploads:', error);
-        }
-    }
-
-    async function deleteUpload(uploadId) {
-        if (!confirm('Are you sure you want to delete this upload? This action cannot be undone.')) {
-            return;
-        }
+async function loadHistory() {
+    try {
+        // Load statistics
+        const statsRes = await fetch('/api/stats');
+        const stats = await statsRes.json();
         
-        try {
-            const response = await fetch('/api/delete-upload/' + uploadId, {
-                method: 'DELETE'
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('Upload deleted successfully!');
-                loadStats();
-                loadUploads();
-            } else {
-                alert('Error deleting upload: ' + data.error);
-            }
-        } catch (error) {
-            alert('Error deleting upload: ' + error.message);
+        document.getElementById('total-uploads').textContent = stats.total_uploads || 0;
+        document.getElementById('total-customers').textContent = stats.total_customers || 0;
+        document.getElementById('high-risk').textContent = stats.high_risk || 0;
+        document.getElementById('medium-risk').textContent = stats.medium_risk || 0;
+        document.getElementById('low-risk').textContent = stats.low_risk || 0;
+        
+        // Load uploads
+        const uploadsRes = await fetch('/api/uploads');
+        const data = await uploadsRes.json();
+        const uploads = data.uploads || [];
+        
+        const container = document.getElementById('uploads-container');
+        
+        if (uploads.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-inbox" style="font-size: 3rem; color: #2d4263; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #8899aa; margin-bottom: 0.5rem;">No Uploads Yet</h3>
+                    <p style="color: #6c757d;">Upload your first CSV file to see prediction history</p>
+                    <a href="/batch" class="btn btn-primary" style="margin-top: 1rem;">
+                        <i class="fas fa-upload"></i> Upload CSV
+                    </a>
+                </div>
+            `;
+        } else {
+            container.innerHTML = uploads.map(upload => `
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="color: #00d4ff; margin-bottom: 0.5rem;">
+                                <i class="fas fa-file-csv"></i> ${upload.filename}
+                            </h3>
+                            <p style="color: #8899aa; font-size: 0.85rem;">
+                                <i class="far fa-clock"></i> ${upload.created_at}
+                            </p>
+                        </div>
+                        <button onclick="deleteUpload('${upload.upload_id}')" 
+                                class="btn btn-danger" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div class="grid-4">
+                        <div style="text-align: center; padding: 1rem; background: rgba(0, 212, 255, 0.05); border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #00d4ff;">${upload.total_customers}</div>
+                            <div style="color: #8899aa; font-size: 0.85rem;">Total</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: rgba(255, 82, 82, 0.05); border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ff5252;">${upload.high_risk_count}</div>
+                            <div style="color: #8899aa; font-size: 0.85rem;">High Risk</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: rgba(255, 171, 64, 0.05); border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ffab40;">${upload.medium_risk_count}</div>
+                            <div style="color: #8899aa; font-size: 0.85rem;">Medium Risk</div>
+                        </div>
+                        <div style="text-align: center; padding: 1rem; background: rgba(105, 240, 174, 0.05); border-radius: 8px;">
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #69f0ae;">${upload.low_risk_count}</div>
+                            <div style="color: #8899aa; font-size: 0.85rem;">Low Risk</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
+    } catch (error) {
+        console.error('Error loading history:', error);
+        document.getElementById('uploads-container').innerHTML = `
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                Error loading history. Please refresh the page.
+            </div>
+        `;
     }
+}
 
-    // Load data on page load
-    loadStats();
-    loadUploads();
+async function deleteUpload(uploadId) {
+    if (!confirm('Are you sure you want to delete this upload?')) return;
+    
+    try {
+        const res = await fetch('/api/delete-upload/' + uploadId, { method: 'DELETE' });
+        if (res.ok) {
+            loadHistory();
+        } else {
+            alert('Error deleting upload');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error deleting upload');
+    }
+}
+
+// Load on page load
+loadHistory();
 </script>
 {% endblock %}

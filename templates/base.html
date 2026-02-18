@@ -1,389 +1,375 @@
-"""
-AI Churn Prediction System - COMPLETE FIXED VERSION
-Fixed: Database foreign key relationship error
-Fixed: Prediction probabilities
-New: Dark Theme Design
-"""
-
-from flask import Flask, render_template, request, jsonify, Response
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import pandas as pd
-import uuid
-import os
-
-app = Flask(_name_)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///churn_predictions.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'churn-prediction-secret-key-2026'
-
-db = SQLAlchemy()
-db.init_app(app)
-
-try:
-    from model_utils import ChurnPredictor
-    predictor = ChurnPredictor()
-    print("✅ ChurnPredictor loaded successfully")
-except Exception as e:
-    print(f"⚠️ Warning: Could not load ChurnPredictor: {e}")
-    predictor = None
-
-
-# ===========================
-# DATABASE MODELS - FIXED
-# ===========================
-
-class Upload(db.Model):
-    _tablename_ = 'uploads'
-    id = db.Column(db.Integer, primary_key=True)
-    upload_id = db.Column(db.String(50), unique=True, nullable=False)
-    filename = db.Column(db.String(255))
-    total_customers = db.Column(db.Integer, default=0)
-    high_risk_count = db.Column(db.Integer, default=0)
-    medium_risk_count = db.Column(db.Integer, default=0)
-    low_risk_count = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'upload_id': self.upload_id,
-            'filename': self.filename,
-            'total_customers': self.total_customers,
-            'high_risk_count': self.high_risk_count,
-            'medium_risk_count': self.medium_risk_count,
-            'low_risk_count': self.low_risk_count,
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Churn Predictor{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-
-class Customer(db.Model):
-    _tablename_ = 'customers'
-    id = db.Column(db.Integer, primary_key=True)
-    upload_id = db.Column(db.String(50), db.ForeignKey('uploads.upload_id'), nullable=False)
-    gender = db.Column(db.String(10))
-    senior_citizen = db.Column(db.Integer)
-    partner = db.Column(db.String(10))
-    dependents = db.Column(db.String(10))
-    tenure = db.Column(db.Integer)
-    contract = db.Column(db.String(50))
-    payment_method = db.Column(db.String(50))
-    monthly_charges = db.Column(db.Float)
-    total_charges = db.Column(db.Float)
-    internet_service = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'upload_id': self.upload_id,
-            'gender': self.gender,
-            'senior_citizen': self.senior_citizen,
-            'partner': self.partner,
-            'dependents': self.dependents,
-            'tenure': self.tenure,
-            'contract': self.contract,
-            'payment_method': self.payment_method,
-            'monthly_charges': self.monthly_charges,
-            'total_charges': self.total_charges,
-            'internet_service': self.internet_service
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1b2a;
+            color: #e0e6ed;
+            min-height: 100vh;
         }
 
-
-class Prediction(db.Model):
-    _tablename_ = 'predictions'
-    id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
-    will_churn = db.Column(db.Integer)
-    churn_probability = db.Column(db.Float)
-    risk_level = db.Column(db.String(20))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'customer_id': self.customer_id,
-            'will_churn': self.will_churn,
-            'churn_probability': self.churn_probability,
-            'risk_level': self.risk_level,
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        /* NAVBAR */
+        .navbar {
+            background: #1b263b;
+            border-bottom: 1px solid #2d4263;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 65px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #00d4ff;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
 
-def init_db():
-    try:
-        with app.app_context():
-            db.create_all()
-            print("✅ Database initialized successfully")
-    except Exception as e:
-        print(f"⚠️ Database init warning: {e}")
+        .navbar-brand i {
+            color: #00d4ff;
+            font-size: 1.5rem;
+        }
 
-init_db()
+        .navbar-nav {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+        }
 
+        .nav-link {
+            color: #8899aa;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-# ===========================
-# PAGE ROUTES
-# ===========================
+        .nav-link:hover, .nav-link.active {
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
 
-@app.route('/')
-def index():
-    return render_template('home.html')
+        .main-content {
+            min-height: calc(100vh - 65px);
+        }
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
+        .page-header {
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #0d1b2a 100%);
+            border-bottom: 1px solid #2d4263;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
 
-@app.route('/batch')
-def batch():
-    return render_template('batch.html')
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
 
-@app.route('/history')
-def history():
-    return render_template('history.html')
+        .page-header h1 i {
+            color: #00d4ff;
+            margin-right: 0.5rem;
+        }
 
-@app.route('/analytics')
-def analytics():
-    return render_template('analytics.html')
+        .page-header p {
+            color: #8899aa;
+            font-size: 1.1rem;
+        }
 
-@app.route('/health')
-def health():
-    return 'OK', 200
+        .section {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
+        .card {
+            background: #1b263b;
+            border: 1px solid #2d4263;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
 
-# ===========================
-# API ROUTES
-# ===========================
+        .card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    try:
-        data = request.get_json()
-        if predictor:
-            prediction, probability = predictor.predict(data)
-            risk_level = 'High' if probability > 0.7 else ('Medium' if probability > 0.3 else 'Low')
-            return jsonify({
-                'prediction': int(prediction),
-                'probability': float(probability),
-                'risk_level': risk_level
-            })
-        else:
-            return jsonify({'error': 'Predictor not available'}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        .stat-card {
+            background: #1b263b;
+            border: 1px solid #2d4263;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
 
+        .stat-card .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
 
-@app.route('/batch-predict', methods=['POST'])
-def batch_predict():
-    try:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file uploaded'}), 400
+        .stat-card .stat-label {
+            color: #8899aa;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
 
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
+        .stat-card.total { border-top: 3px solid #00d4ff; }
+        .stat-card.total .stat-number { color: #00d4ff; }
+        .stat-card.high { border-top: 3px solid #ff5252; }
+        .stat-card.high .stat-number { color: #ff5252; }
+        .stat-card.medium { border-top: 3px solid #ffab40; }
+        .stat-card.medium .stat-number { color: #ffab40; }
+        .stat-card.low { border-top: 3px solid #69f0ae; }
+        .stat-card.low .stat-number { color: #69f0ae; }
 
-        upload_id = str(uuid.uuid4())[:8]
-        df = pd.read_csv(file)
-        print(f"📊 CSV loaded: {len(df)} rows, columns: {list(df.columns)}")
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
 
-        results = []
-        high_risk = 0
-        medium_risk = 0
-        low_risk = 0
-        saved_customers = []
+        .btn-primary {
+            background: linear-gradient(135deg, #0080ff, #00d4ff);
+            color: white;
+        }
 
-        for idx, row in df.iterrows():
-            try:
-                customer_data = {
-                    'Gender': str(row.get('Gender', row.get('gender', 'Male'))),
-                    'SeniorCitizen': int(row.get('SeniorCitizen', row.get('senior_citizen', 0))),
-                    'Partner': str(row.get('Partner', row.get('partner', 'No'))),
-                    'Dependents': str(row.get('Dependents', row.get('dependents', 'No'))),
-                    'tenure': int(row.get('tenure', row.get('Tenure', 12))),
-                    'Contract': str(row.get('Contract', row.get('contract', 'Month-to-month'))),
-                    'PaymentMethod': str(row.get('PaymentMethod', row.get('payment_method', 'Electronic check'))),
-                    'MonthlyCharges': float(row.get('MonthlyCharges', row.get('monthly_charges', 50))),
-                    'TotalCharges': float(row.get('TotalCharges', row.get('total_charges', 500))),
-                    'InternetService': str(row.get('InternetService', row.get('internet_service', 'No')))
-                }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
 
-                if predictor:
-                    pred, prob = predictor.predict(customer_data)
-                else:
-                    pred, prob = 0, 0.5
+        .btn-success {
+            background: linear-gradient(135deg, #00c853, #69f0ae);
+            color: #0d1b2a;
+        }
 
-                prob_pct = round(float(prob) * 100, 1)
-                risk = 'High' if prob_pct > 70 else ('Medium' if prob_pct > 30 else 'Low')
+        .btn-danger {
+            background: linear-gradient(135deg, #d32f2f, #ff5252);
+            color: white;
+        }
 
-                if risk == 'High': high_risk += 1
-                elif risk == 'Medium': medium_risk += 1
-                else: low_risk += 1
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
 
-                results.append({
-                    'customer': f'Customer {idx + 1}',
-                    'prediction': 'Will Churn' if pred == 1 else 'Will Stay',
-                    'probability': prob_pct,
-                    'risk_level': risk,
-                    **customer_data
-                })
+        .form-label {
+            display: block;
+            color: #8899aa;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
 
-                saved_customers.append({
-                    'data': customer_data,
-                    'pred': pred,
-                    'prob': prob_pct,
-                    'risk': risk
-                })
+        .form-control {
+            width: 100%;
+            background: #0d1b2a;
+            border: 1px solid #2d4263;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: #e0e6ed;
+            font-size: 0.95rem;
+        }
 
-            except Exception as e:
-                print(f"⚠️ Row {idx} error: {e}")
-                continue
+        .form-control:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
 
-        total = len(results)
-        print(f"✅ Processed {total} customers: High={high_risk}, Med={medium_risk}, Low={low_risk}")
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
 
-        # Save to database
-        try:
-            upload = Upload(
-                upload_id=upload_id,
-                filename=file.filename,
-                total_customers=total,
-                high_risk_count=high_risk,
-                medium_risk_count=medium_risk,
-                low_risk_count=low_risk
-            )
-            db.session.add(upload)
-            db.session.flush()
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #8899aa;
+        }
 
-            for item in saved_customers:
-                cd = item['data']
-                customer = Customer(
-                    upload_id=upload_id,
-                    gender=cd['Gender'],
-                    senior_citizen=cd['SeniorCitizen'],
-                    partner=cd['Partner'],
-                    dependents=cd['Dependents'],
-                    tenure=cd['tenure'],
-                    contract=cd['Contract'],
-                    payment_method=cd['PaymentMethod'],
-                    monthly_charges=cd['MonthlyCharges'],
-                    total_charges=cd['TotalCharges'],
-                    internet_service=cd['InternetService']
-                )
-                db.session.add(customer)
-                db.session.flush()
+        .radio-option input[type="radio"] {
+            accent-color: #00d4ff;
+        }
 
-                prediction_obj = Prediction(
-                    customer_id=customer.id,
-                    will_churn=int(item['pred']),
-                    churn_probability=float(item['prob']),
-                    risk_level=item['risk']
-                )
-                db.session.add(prediction_obj)
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
 
-            db.session.commit()
-            print(f"✅ Saved to database successfully!")
+        .data-table th {
+            background: #1b263b;
+            color: #00d4ff;
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #2d4263;
+        }
 
-        except Exception as e:
-            db.session.rollback()
-            print(f"❌ Database save error: {e}")
+        .data-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #2d4263;
+            color: #c0cde0;
+        }
 
-        return jsonify({
-            'upload_id': upload_id,
-            'summary': {
-                'total': total,
-                'high_risk': high_risk,
-                'high_risk_pct': round(high_risk / total * 100, 1) if total > 0 else 0,
-                'medium_risk': medium_risk,
-                'medium_risk_pct': round(medium_risk / total * 100, 1) if total > 0 else 0,
-                'low_risk': low_risk,
-                'low_risk_pct': round(low_risk / total * 100, 1) if total > 0 else 0,
-            },
-            'results': results
-        })
+        .data-table tr:hover td {
+            background: rgba(0, 212, 255, 0.05);
+        }
 
-    except Exception as e:
-        print(f"❌ Batch predict error: {e}")
-        return jsonify({'error': str(e)}), 500
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
 
+        .badge-high {
+            background: rgba(255, 82, 82, 0.15);
+            color: #ff5252;
+            border: 1px solid #ff5252;
+        }
 
-@app.route('/download-sample')
-def download_sample():
-    sample_data = """Gender,SeniorCitizen,Partner,Dependents,tenure,Contract,PaymentMethod,MonthlyCharges,TotalCharges,InternetService
-Female,1,No,No,2,Month-to-month,Electronic check,95.0,190.0,Fiber optic
-Male,0,Yes,Yes,48,Two year,Credit card (automatic),45.0,2160.0,DSL
-Female,0,No,No,12,Month-to-month,Bank transfer (automatic),85.5,1026.0,Fiber optic
-Male,1,Yes,No,3,Month-to-month,Electronic check,89.0,267.0,Fiber optic
-Female,0,Yes,Yes,36,One year,Credit card (automatic),70.0,2520.0,DSL
-Male,0,No,No,6,Month-to-month,Electronic check,95.0,570.0,Fiber optic
-Female,1,No,No,1,Month-to-month,Electronic check,99.0,99.0,Fiber optic
-Male,0,Yes,Yes,60,Two year,Bank transfer (automatic),50.0,3000.0,DSL"""
-    return Response(
-        sample_data,
-        mimetype="text/csv",
-        headers={"Content-disposition": "attachment; filename=sample_customers.csv"}
-    )
+        .badge-medium {
+            background: rgba(255, 171, 64, 0.15);
+            color: #ffab40;
+            border: 1px solid #ffab40;
+        }
 
+        .badge-low {
+            background: rgba(105, 240, 174, 0.15);
+            color: #69f0ae;
+            border: 1px solid #69f0ae;
+        }
 
-@app.route('/api/uploads')
-def get_uploads():
-    try:
-        uploads = Upload.query.order_by(Upload.created_at.desc()).all()
-        return jsonify({'uploads': [u.to_dict() for u in uploads]})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; }
 
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
 
-@app.route('/api/upload/<upload_id>')
-def get_upload_details(upload_id):
-    try:
-        customers = Customer.query.filter_by(upload_id=upload_id).all()
-        results = []
-        for customer in customers:
-            cd = customer.to_dict()
-            pred = Prediction.query.filter_by(customer_id=customer.id).first()
-            if pred:
-                cd['prediction'] = pred.to_dict()
-            results.append(cd)
-        return jsonify({'customers': results})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        .alert-success {
+            background: rgba(105, 240, 174, 0.1);
+            border: 1px solid #69f0ae;
+            color: #69f0ae;
+        }
 
+        .alert-error {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid #ff5252;
+            color: #ff5252;
+        }
 
-@app.route('/api/delete-upload/<upload_id>', methods=['DELETE'])
-def delete_upload(upload_id):
-    try:
-        customers = Customer.query.filter_by(upload_id=upload_id).all()
-        for customer in customers:
-            Prediction.query.filter_by(customer_id=customer.id).delete()
-        Customer.query.filter_by(upload_id=upload_id).delete()
-        Upload.query.filter_by(upload_id=upload_id).delete()
-        db.session.commit()
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            display: none;
+        }
 
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2d4263;
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
 
-@app.route('/api/stats')
-def get_stats():
-    try:
-        total_customers = Customer.query.count()
-        total_uploads = Upload.query.count()
-        high_risk = Prediction.query.filter_by(risk_level='High').count()
-        medium_risk = Prediction.query.filter_by(risk_level='Medium').count()
-        low_risk = Prediction.query.filter_by(risk_level='Low').count()
-        return jsonify({
-            'total_customers': total_customers,
-            'total_uploads': total_uploads,
-            'high_risk': high_risk,
-            'medium_risk': medium_risk,
-            'low_risk': low_risk
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
+        .upload-zone {
+            border: 2px dashed #2d4263;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            background: #1b263b;
+        }
 
-if _name_ == '_main_':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+        .upload-zone:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4, .grid-5 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <i class="fas fa-brain"></i>
+        AI Churn Predictor
+    </a>
+    <ul class="navbar-nav">
+        <li><a href="/" class="nav-link">
+            <i class="fas fa-home"></i> Home
+        </a></li>
+        <li><a href="/dashboard" class="nav-link">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a></li>
+        <li><a href="/batch" class="nav-link">
+            <i class="fas fa-upload"></i> Batch
+        </a></li>
+        <li><a href="/history" class="nav-link">
+            <i class="fas fa-history"></i> History
+        </a></li>
+        <li><a href="/analytics" class="nav-link">
+            <i class="fas fa-chart-line"></i> Analytics
+        </a></li>
+    </ul>
+</nav>
+
+<div class="main-content">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>
