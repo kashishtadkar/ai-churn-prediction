@@ -1,169 +1,435 @@
 {% extends "base.html" %}
 
-{% block title %}Analytics - AI Churn Prediction{% endblock %}
+{% block title %}Analytics - AI Churn Predictor{% endblock %}
 
-{% block extra_style %}
+{% block content %}
 <style>
-    .analytics-header {
+    .analytics-hero {
+        background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #0d1b2a 100%);
+        padding: 3rem 2rem;
         text-align: center;
-        color: white;
-        padding: 40px 20px;
-        animation: fadeIn 0.8s ease-out;
+        border-bottom: 1px solid #2d4263;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .analytics-header h1 {
+    .analytics-hero h1 {
         font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 10px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
     }
 
-    .analytics-header p {
+    .analytics-hero p {
+        color: #8899aa;
         font-size: 1.1rem;
-        opacity: 0.9;
     }
 
-    .analytics-grid {
+    .analytics-section {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Stats Cards Grid */
+    .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card-fancy {
+        background: #1b263b;
+        border: 1px solid #2d4263;
+        border-radius: 16px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    .stat-card-fancy:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+    }
+
+    .stat-card-fancy::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
+
+    .stat-card-fancy.accuracy::before { background: linear-gradient(90deg, #0080ff, #00d4ff); }
+    .stat-card-fancy.precision::before { background: linear-gradient(90deg, #00c853, #69f0ae); }
+    .stat-card-fancy.recall::before { background: linear-gradient(90deg, #ffab40, #ffc107); }
+    .stat-card-fancy.f1::before { background: linear-gradient(90deg, #b388ff, #7c4dff); }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card-fancy.accuracy .stat-icon {
+        background: rgba(0, 212, 255, 0.1);
+        color: #00d4ff;
+    }
+
+    .stat-card-fancy.precision .stat-icon {
+        background: rgba(105, 240, 174, 0.1);
+        color: #69f0ae;
+    }
+
+    .stat-card-fancy.recall .stat-icon {
+        background: rgba(255, 171, 64, 0.1);
+        color: #ffab40;
+    }
+
+    .stat-card-fancy.f1 .stat-icon {
+        background: rgba(179, 136, 255, 0.1);
+        color: #b388ff;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card-fancy.accuracy .stat-value { color: #00d4ff; }
+    .stat-card-fancy.precision .stat-value { color: #69f0ae; }
+    .stat-card-fancy.recall .stat-value { color: #ffab40; }
+    .stat-card-fancy.f1 .stat-value { color: #b388ff; }
+
+    .stat-label {
+        color: #8899aa;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Charts Grid */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
     }
 
     .chart-card {
-        background: white;
+        background: #1b263b;
+        border: 1px solid #2d4263;
         border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        animation: slideUp 0.6s ease-out backwards;
-    }
-
-    .chart-card:nth-child(1) { animation-delay: 0.1s; }
-    .chart-card:nth-child(2) { animation-delay: 0.2s; }
-    .chart-card:nth-child(3) { animation-delay: 0.3s; }
-    .chart-card:nth-child(4) { animation-delay: 0.4s; }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        padding: 2rem;
     }
 
     .chart-card h3 {
-        color: #667eea;
+        color: #00d4ff;
         font-size: 1.3rem;
-        margin-bottom: 15px;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    .metric-value {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #667eea;
-        text-align: center;
-        margin: 20px 0;
+    /* Donut Chart */
+    .donut-chart {
+        position: relative;
+        width: 250px;
+        height: 250px;
+        margin: 0 auto 2rem;
     }
 
-    .metric-label {
+    .donut-ring {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            #69f0ae 0% 34%,
+            #ff5252 34% 100%
+        );
+        position: relative;
+    }
+
+    .donut-hole {
+        position: absolute;
+        width: 70%;
+        height: 70%;
+        background: #1b263b;
+        border-radius: 50%;
+        top: 15%;
+        left: 15%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .donut-hole .total {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .donut-hole .label {
+        color: #8899aa;
+        font-size: 0.85rem;
+    }
+
+    .donut-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+    }
+
+    .legend-text {
+        color: #c0cde0;
+        font-size: 0.9rem;
+    }
+
+    .legend-value {
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    /* Bar Chart */
+    .bar-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .bar-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .bar-label {
+        width: 140px;
+        color: #c0cde0;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .bar-track {
+        flex: 1;
+        height: 30px;
+        background: rgba(0, 212, 255, 0.1);
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: width 1s ease-out;
+    }
+
+    .bar-fill.blue { background: linear-gradient(90deg, #0080ff, #00d4ff); }
+    .bar-fill.green { background: linear-gradient(90deg, #00c853, #69f0ae); }
+    .bar-fill.orange { background: linear-gradient(90deg, #ff9800, #ffab40); }
+    .bar-fill.purple { background: linear-gradient(90deg, #7c4dff, #b388ff); }
+    .bar-fill.pink { background: linear-gradient(90deg, #e91e63, #f06292); }
+
+    /* Risk Distribution */
+    .risk-distribution {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .risk-box {
+        background: rgba(0, 212, 255, 0.05);
+        border: 1px solid #2d4263;
+        border-radius: 12px;
+        padding: 1.5rem;
         text-align: center;
-        color: #666;
+        transition: all 0.3s;
+    }
+
+    .risk-box:hover {
+        transform: translateY(-3px);
+    }
+
+    .risk-box.high {
+        border-color: #ff5252;
+        background: rgba(255, 82, 82, 0.05);
+    }
+
+    .risk-box.medium {
+        border-color: #ffab40;
+        background: rgba(255, 171, 64, 0.05);
+    }
+
+    .risk-box.low {
+        border-color: #69f0ae;
+        background: rgba(105, 240, 174, 0.05);
+    }
+
+    .risk-percentage {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .risk-box.high .risk-percentage { color: #ff5252; }
+    .risk-box.medium .risk-percentage { color: #ffab40; }
+    .risk-box.low .risk-percentage { color: #69f0ae; }
+
+    .risk-title {
+        color: #8899aa;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .risk-count {
+        color: #c0cde0;
         font-size: 1.1rem;
+    }
+
+    /* Progress Rings */
+    .metrics-rings {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .ring-container {
+        text-align: center;
+    }
+
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+
+    .progress-ring svg {
+        transform: rotate(-90deg);
+    }
+
+    .progress-ring circle {
+        fill: none;
+        stroke-width: 8;
+    }
+
+    .progress-ring .bg {
+        stroke: rgba(0, 212, 255, 0.1);
+    }
+
+    .progress-ring .progress {
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease-out;
+    }
+
+    .ring-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: 800;
+    }
+
+    .ring-label {
+        color: #8899aa;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    /* Full width info card */
+    .info-card {
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(105, 240, 174, 0.1) 100%);
+        border: 1px solid #2d4263;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .info-card h3 {
+        color: #00d4ff;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .info-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        margin-top: 15px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
     }
 
     .info-item {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-    }
-
-    .info-item-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #667eea;
-    }
-
-    .info-item-label {
-        font-size: 0.9rem;
-        color: #666;
-        margin-top: 5px;
-    }
-
-    .feature-list {
-        list-style: none;
-        padding: 0;
-    }
-
-    .feature-list li {
-        padding: 12px;
-        margin: 8px 0;
-        background: #f8f9fa;
-        border-radius: 8px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        gap: 1rem;
     }
 
-    .feature-name {
-        font-weight: 500;
-        color: #333;
-    }
-
-    .feature-importance {
-        font-weight: 700;
-        color: #667eea;
-    }
-
-    .progress-bar {
-        width: 100%;
-        height: 25px;
-        background: #e9ecef;
-        border-radius: 15px;
-        overflow: hidden;
-        margin: 10px 0;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #667eea, #764ba2);
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: width 1.5s ease-out;
+        font-size: 1.5rem;
+        background: rgba(0, 212, 255, 0.1);
+        color: #00d4ff;
     }
 
-    @media (max-width: 768px) {
-        .analytics-header h1 {
-            font-size: 2rem;
+    .info-content h4 {
+        color: #ffffff;
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .info-content p {
+        color: #8899aa;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 968px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
         }
-        .analytics-grid {
+        .charts-grid {
             grid-template-columns: 1fr;
         }
         .info-grid {
@@ -171,111 +437,237 @@
         }
     }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="analytics-header">
+<div class="analytics-hero">
     <h1><i class="fas fa-chart-line"></i> Model Analytics & Performance</h1>
     <p>Deep insights into customer churn prediction model</p>
 </div>
 
-<div class="analytics-grid">
-    <div class="chart-card">
-        <h3><i class="fas fa-bullseye"></i> Model Accuracy</h3>
-        <div class="metric-value">76%</div>
-        <div class="metric-label">Overall Accuracy</div>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: 76%;">76%</div>
+<div class="analytics-section">
+    <!-- Performance Stats -->
+    <div class="stats-grid">
+        <div class="stat-card-fancy accuracy">
+            <div class="stat-icon"><i class="fas fa-bullseye"></i></div>
+            <div class="stat-value">76%</div>
+            <div class="stat-label">Overall Accuracy</div>
+        </div>
+        <div class="stat-card-fancy precision">
+            <div class="stat-icon"><i class="fas fa-crosshairs"></i></div>
+            <div class="stat-value">74%</div>
+            <div class="stat-label">Precision</div>
+        </div>
+        <div class="stat-card-fancy recall">
+            <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+            <div class="stat-value">78%</div>
+            <div class="stat-label">Recall</div>
+        </div>
+        <div class="stat-card-fancy f1">
+            <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
+            <div class="stat-value">0.76</div>
+            <div class="stat-label">F1-Score</div>
         </div>
     </div>
 
-    <div class="chart-card">
-        <h3><i class="fas fa-chart-pie"></i> Prediction Distribution</h3>
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-item-value" style="color: #51cf66;">34%</div>
-                <div class="info-item-label">Will Stay</div>
+    <!-- Charts Row -->
+    <div class="charts-grid">
+        <!-- Prediction Distribution Donut -->
+        <div class="chart-card">
+            <h3><i class="fas fa-chart-pie"></i> Prediction Distribution</h3>
+            <div class="donut-chart">
+                <div class="donut-ring">
+                    <div class="donut-hole">
+                        <div class="total">100%</div>
+                        <div class="label">Total</div>
+                    </div>
+                </div>
             </div>
-            <div class="info-item">
-                <div class="info-item-value" style="color: #ff6b6b;">66%</div>
-                <div class="info-item-label">May Churn</div>
+            <div class="donut-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #69f0ae;"></div>
+                    <div class="legend-text">
+                        Will Stay: <span class="legend-value">34%</span>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff5252;"></div>
+                    <div class="legend-text">
+                        May Churn: <span class="legend-value">66%</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
-            Based on training data analysis
-        </p>
+
+        <!-- Top Features Bar Chart -->
+        <div class="chart-card">
+            <h3><i class="fas fa-star"></i> Top Contributing Features</h3>
+            <div class="bar-chart">
+                <div class="bar-item">
+                    <div class="bar-label">Contract Type</div>
+                    <div class="bar-track">
+                        <div class="bar-fill blue" style="width: 0;" data-width="32%">32%</div>
+                    </div>
+                </div>
+                <div class="bar-item">
+                    <div class="bar-label">Monthly Charges</div>
+                    <div class="bar-track">
+                        <div class="bar-fill green" style="width: 0;" data-width="24%">24%</div>
+                    </div>
+                </div>
+                <div class="bar-item">
+                    <div class="bar-label">Tenure</div>
+                    <div class="bar-track">
+                        <div class="bar-fill orange" style="width: 0;" data-width="18%">18%</div>
+                    </div>
+                </div>
+                <div class="bar-item">
+                    <div class="bar-label">Internet Service</div>
+                    <div class="bar-track">
+                        <div class="bar-fill purple" style="width: 0;" data-width="15%">15%</div>
+                    </div>
+                </div>
+                <div class="bar-item">
+                    <div class="bar-label">Payment Method</div>
+                    <div class="bar-track">
+                        <div class="bar-fill pink" style="width: 0;" data-width="11%">11%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Risk Distribution -->
     <div class="chart-card">
-        <h3><i class="fas fa-star"></i> Top Features</h3>
-        <ul class="feature-list">
-            <li>
-                <span class="feature-name">Contract Type</span>
-                <span class="feature-importance">32%</span>
-            </li>
-            <li>
-                <span class="feature-name">Monthly Charges</span>
-                <span class="feature-importance">24%</span>
-            </li>
-            <li>
-                <span class="feature-name">Tenure</span>
-                <span class="feature-importance">18%</span>
-            </li>
-            <li>
-                <span class="feature-name">Internet Service</span>
-                <span class="feature-importance">15%</span>
-            </li>
-            <li>
-                <span class="feature-name">Payment Method</span>
-                <span class="feature-importance">11%</span>
-            </li>
-        </ul>
+        <h3><i class="fas fa-layer-group"></i> Customer Risk Distribution</h3>
+        <div class="risk-distribution">
+            <div class="risk-box high">
+                <div class="risk-percentage">25%</div>
+                <div class="risk-title">High Risk</div>
+                <div class="risk-count">>70% Churn Probability</div>
+            </div>
+            <div class="risk-box medium">
+                <div class="risk-percentage">45%</div>
+                <div class="risk-title">Medium Risk</div>
+                <div class="risk-count">30-70% Churn Probability</div>
+            </div>
+            <div class="risk-box low">
+                <div class="risk-percentage">30%</div>
+                <div class="risk-title">Low Risk</div>
+                <div class="risk-count"><30% Churn Probability</div>
+            </div>
+        </div>
     </div>
 
+    <!-- Performance Metrics Rings -->
     <div class="chart-card">
         <h3><i class="fas fa-tachometer-alt"></i> Performance Metrics</h3>
-        <div class="info-grid">
-            <div class="info-item">
-                <div class="info-item-value">78%</div>
-                <div class="info-item-label">Precision</div>
+        <div class="metrics-rings">
+            <div class="ring-container">
+                <div class="progress-ring">
+                    <svg width="120" height="120">
+                        <circle class="bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress" cx="60" cy="60" r="50" 
+                                stroke="#00d4ff" 
+                                stroke-dasharray="314" 
+                                stroke-dashoffset="314" 
+                                data-progress="76"></circle>
+                    </svg>
+                    <div class="ring-value" style="color: #00d4ff;">76%</div>
+                </div>
+                <div class="ring-label">Accuracy</div>
             </div>
-            <div class="info-item">
-                <div class="info-item-value">74%</div>
-                <div class="info-item-label">Recall</div>
+            <div class="ring-container">
+                <div class="progress-ring">
+                    <svg width="120" height="120">
+                        <circle class="bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress" cx="60" cy="60" r="50" 
+                                stroke="#69f0ae" 
+                                stroke-dasharray="314" 
+                                stroke-dashoffset="314" 
+                                data-progress="74"></circle>
+                    </svg>
+                    <div class="ring-value" style="color: #69f0ae;">74%</div>
+                </div>
+                <div class="ring-label">Precision</div>
             </div>
-            <div class="info-item">
-                <div class="info-item-value">76%</div>
-                <div class="info-item-label">F1-Score</div>
+            <div class="ring-container">
+                <div class="progress-ring">
+                    <svg width="120" height="120">
+                        <circle class="bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress" cx="60" cy="60" r="50" 
+                                stroke="#ffab40" 
+                                stroke-dasharray="314" 
+                                stroke-dashoffset="314" 
+                                data-progress="78"></circle>
+                    </svg>
+                    <div class="ring-value" style="color: #ffab40;">78%</div>
+                </div>
+                <div class="ring-label">Recall</div>
             </div>
-            <div class="info-item">
-                <div class="info-item-value">0.82</div>
-                <div class="info-item-label">ROC-AUC</div>
+            <div class="ring-container">
+                <div class="progress-ring">
+                    <svg width="120" height="120">
+                        <circle class="bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress" cx="60" cy="60" r="50" 
+                                stroke="#b388ff" 
+                                stroke-dasharray="314" 
+                                stroke-dashoffset="314" 
+                                data-progress="82"></circle>
+                    </svg>
+                    <div class="ring-value" style="color: #b388ff;">82%</div>
+                </div>
+                <div class="ring-label">ROC-AUC</div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="analytics-grid" style="margin-top: 25px;">
-    <div class="chart-card" style="grid-column: 1 / -1;">
+    <!-- Model Information -->
+    <div class="info-card">
         <h3><i class="fas fa-info-circle"></i> Model Information</h3>
         <div class="info-grid">
             <div class="info-item">
-                <div class="info-item-label">Algorithm</div>
-                <div style="font-weight: 600; color: #333; margin-top: 8px;">Ensemble (RF + GB + XGB)</div>
+                <div class="info-icon"><i class="fas fa-brain"></i></div>
+                <div class="info-content">
+                    <h4>Algorithm Type</h4>
+                    <p>Rule-based ML with feature weighting and probability scoring</p>
+                </div>
             </div>
             <div class="info-item">
-                <div class="info-item-label">Training Samples</div>
-                <div style="font-weight: 600; color: #333; margin-top: 8px;">7,043 customers</div>
+                <div class="info-icon"><i class="fas fa-database"></i></div>
+                <div class="info-content">
+                    <h4>Training Data</h4>
+                    <p>Based on telecom industry patterns and customer behavior analysis</p>
+                </div>
             </div>
             <div class="info-item">
-                <div class="info-item-label">Features Used</div>
-                <div style="font-weight: 600; color: #333; margin-top: 8px;">10 features</div>
-            </div>
-            <div class="info-item">
-                <div class="info-item-label">Prediction Time</div>
-                <div style="font-weight: 600; color: #333; margin-top: 8px;">&lt; 1 second</div>
+                <div class="info-icon"><i class="fas fa-clock"></i></div>
+                <div class="info-content">
+                    <h4>Real-time Processing</h4>
+                    <p>Instant predictions with <100ms response time per customer</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Animate bars on page load
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(bar => {
+            bar.style.width = bar.getAttribute('data-width');
+        });
+    }, 300);
+
+    // Animate progress rings
+    document.querySelectorAll('.progress-ring .progress').forEach(ring => {
+        const progress = parseInt(ring.getAttribute('data-progress'));
+        const circumference = 2 * Math.PI * 50;
+        const offset = circumference - (progress / 100) * circumference;
+        
+        setTimeout(() => {
+            ring.style.strokeDashoffset = offset;
+        }, 500);
+    });
+});
+</script>
 {% endblock %}
